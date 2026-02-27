@@ -76,4 +76,15 @@ text
         assertTrue(html.contains("<table>"))
         assertTrue(html.contains("checkbox"))
     }
+
+
+    @Test
+    fun htmlSerializer_respectsTableAlignment() {
+        val doc = MarkdownParser.parse("| L | C | R |\n| :-- | :-: | --: |\n| 1 | 2 | 3 |")
+        val html = HtmlSerializer.serialize(doc)
+        assertTrue(html.contains("<th style=\"text-align:left\">L</th>"))
+        assertTrue(html.contains("<th style=\"text-align:center\">C</th>"))
+        assertTrue(html.contains("<th style=\"text-align:right\">R</th>"))
+        assertTrue(html.contains("<td style=\"text-align:right\">3</td>"))
+    }
 }
