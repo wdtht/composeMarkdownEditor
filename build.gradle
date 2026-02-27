@@ -1,0 +1,19 @@
+plugins {
+    id 'org.jetbrains.kotlin.multiplatform' version '2.0.21'
+}
+
+repositories {
+    mavenCentral()
+}
+
+kotlin {
+    jvm()
+
+    sourceSets {
+        commonMain.dependencies {
+        }
+        commonTest.dependencies {
+            implementation kotlin('test')
+        }
+    }
+}
