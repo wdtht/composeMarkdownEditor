@@ -37,6 +37,19 @@ class MarkdownParserTest {
         assertEquals(listOf("1", "2", "3"), table.rows.single())
     }
 
+
+    @Test
+    fun parse_tableAlignmentAndRows_areNormalizedToHeaderCount() {
+        val md = "| A | B | C |\n| :-- | --: |\n| 1 | 2 |\n| 3 | 4 | 5 | 6 |"
+        val doc = MarkdownParser.parse(md)
+        val table = doc.blocks.single() as Block.Table
+
+        assertEquals(3, table.headers.size)
+        assertEquals(listOf(TableAlignment.LEFT, TableAlignment.RIGHT, TableAlignment.NONE), table.alignments)
+        assertEquals(listOf("1", "2", ""), table.rows[0])
+        assertEquals(listOf("3", "4", "5"), table.rows[1])
+    }
+
     @Test
     fun parse_blockImage() {
         val doc = MarkdownParser.parse("![logo](https://img/logo.png)")
