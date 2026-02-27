@@ -128,11 +128,11 @@ object MarkdownParser {
 
             if (isTableHeader(lines, i)) {
                 val headers = splitTableLine(lines[i])
-                val alignments = parseAlignments(splitTableLine(lines[i + 1]))
+                val alignments = normalizeAlignments(headers.size, parseAlignments(splitTableLine(lines[i + 1])))
                 i += 2
                 val rows = mutableListOf<List<String>>()
                 while (i < lines.size && lines[i].contains('|') && lines[i].isNotBlank()) {
-                    rows += splitTableLine(lines[i])
+                    rows += normalizeRow(headers.size, splitTableLine(lines[i]))
                     i++
                 }
                 blocks += Block.Table(headers, alignments, rows)
@@ -199,6 +199,18 @@ object MarkdownParser {
             it.endsWith(":") -> TableAlignment.RIGHT
             else -> TableAlignment.NONE
         }
+    }
+
+    private fun normalizeAlignments(expectedSize: Int, parsed: List<TableAlignment>): List<TableAlignment> {
+        if (expectedSize <= 0) return emptyList()
+        if (parsed.size == expectedSize) return parsed
+        return List(expectedSize) { idx -> parsed.getOrElse(idx) { TableAlignment.NONE } }
+    }
+
+    private fun normalizeRow(expectedSize: Int, row: List<String>): List<String> {
+        if (expectedSize <= 0) return emptyList()
+        if (row.size == expectedSize) return row
+        return List(expectedSize) { idx -> row.getOrElse(idx) { "" } }
     }
 
     private fun isBlockStarter(lines: List<String>, index: Int): Boolean {
