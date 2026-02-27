@@ -43,13 +43,17 @@ object MarkdownSerializer {
     }
 
     private fun serializeTable(table: Block.Table): String {
-        val header = "| ${table.headers.joinToString(" | ")} |"
+        val header = "| ${table.headers.joinToString(" | ") { escapeTableCell(it) }} |"
         val aligns = "| ${table.alignments.map { alignmentToMarkdown(it) }.joinToString(" | ")} |"
         val rows = table.rows.joinToString("\n") { row ->
-            "| ${row.joinToString(" | ")} |"
+            "| ${row.joinToString(" | ") { escapeTableCell(it) }} |"
         }
         return listOfNotNull(header, aligns, rows.ifBlank { null }).joinToString("\n")
     }
+
+    private fun escapeTableCell(value: String): String = value
+        .replace("\\", "\\\\")
+        .replace("|", "\\|")
 
     private fun alignmentToMarkdown(alignment: TableAlignment): String = when (alignment) {
         TableAlignment.LEFT -> ":---"
