@@ -33,4 +33,4 @@ fi
 echo "Using JAVA_HOME=${JAVA_HOME:-<unset>}"
 java -version
 
-gradle --no-daemon test "$@"
+gradle --no-daemon allTests "$@"
