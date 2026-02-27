@@ -3,6 +3,7 @@ package com.composemarkdown.editor.serializer
 import com.composemarkdown.editor.model.Block
 import com.composemarkdown.editor.model.DocumentModel
 import com.composemarkdown.editor.model.Inline
+import com.composemarkdown.editor.model.TableAlignment
 
 object HtmlSerializer {
     fun serialize(document: DocumentModel): String = document.blocks.joinToString("\n") { serializeBlock(it) }
@@ -18,8 +19,15 @@ object HtmlSerializer {
         is Block.OrderedList -> "<ol start=\"${block.start}\">${block.items.joinToString("") { "<li>${serializeInlines(it.inlines)}</li>" }}</ol>"
         is Block.TaskList -> "<ul>${block.items.joinToString("") { "<li><input type=\"checkbox\" ${if (it.checked) "checked" else ""} disabled />${serializeInlines(it.inlines)}</li>" }}</ul>"
         is Block.Table -> {
-            val head = block.headers.joinToString("") { "<th>${escape(it)}</th>" }
-            val rows = block.rows.joinToString("") { row -> "<tr>${row.joinToString("") { "<td>${escape(it)}</td>" }}</tr>" }
+            val head = block.headers.mapIndexed { index, value ->
+                "<th${alignmentAttribute(block.alignments.getOrElse(index) { TableAlignment.NONE })}>${escape(value)}</th>"
+            }.joinToString("")
+            val rows = block.rows.joinToString("") { row ->
+                val cells = row.mapIndexed { index, value ->
+                    "<td${alignmentAttribute(block.alignments.getOrElse(index) { TableAlignment.NONE })}>${escape(value)}</td>"
+                }.joinToString("")
+                "<tr>$cells</tr>"
+            }
             "<table><thead><tr>$head</tr></thead><tbody>$rows</tbody></table>"
         }
         is Block.ImageBlock -> "<img alt=\"${escape(block.alt)}\" src=\"${escape(block.url)}\" />"
@@ -50,4 +58,14 @@ object HtmlSerializer {
         .replace("<", "&lt;")
         .replace(">", "&gt;")
         .replace("\"", "&quot;")
+
+    private fun alignmentAttribute(alignment: TableAlignment): String {
+        val css = when (alignment) {
+            TableAlignment.LEFT -> "left"
+            TableAlignment.CENTER -> "center"
+            TableAlignment.RIGHT -> "right"
+            TableAlignment.NONE -> return ""
+        }
+        return " style=\"text-align:$css\""
+    }
 }

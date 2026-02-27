@@ -68,4 +68,25 @@ class MarkdownSerializerTest {
         val output = MarkdownSerializer.serialize(doc)
         assertEquals("| h1 | h2 |\n| :--- | ---: |\n| a | b |", output)
     }
+
+    @Test
+    fun serialize_tableEscapesPipes() {
+        val doc = DocumentModel(
+            listOf(
+                Block.Table(
+                    headers = listOf("h|1", "h2"),
+                    alignments = listOf(TableAlignment.NONE, TableAlignment.NONE),
+                    rows = listOf(listOf("a|b", "c"))
+                )
+            )
+        )
+
+        val output = MarkdownSerializer.serialize(doc)
+        assertTrue(output.contains("| h\\|1 | h2 |"))
+        assertTrue(output.contains("| a\\|b | c |"))
+
+        val reparsed = MarkdownParser.parse(output)
+        assertEquals(doc, reparsed)
+    }
+
 }

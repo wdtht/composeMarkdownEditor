@@ -190,7 +190,32 @@ object MarkdownParser {
         return separator.matches(Regex("^\\|?\\s*:?-+:?\\s*(\\|\\s*:?-+:?\\s*)+\\|?$"))
     }
 
-    private fun splitTableLine(line: String): List<String> = line.trim().trim('|').split('|').map { it.trim() }
+    private fun splitTableLine(line: String): List<String> {
+        val content = line.trim().trim('|')
+        if (content.isEmpty()) return emptyList()
+
+        val cells = mutableListOf<String>()
+        val current = StringBuilder()
+        var escaped = false
+        for (ch in content) {
+            if (escaped) {
+                current.append(ch)
+                escaped = false
+                continue
+            }
+            when (ch) {
+                '\\' -> escaped = true
+                '|' -> {
+                    cells += current.toString().trim()
+                    current.clear()
+                }
+                else -> current.append(ch)
+            }
+        }
+        if (escaped) current.append('\\')
+        cells += current.toString().trim()
+        return cells
+    }
 
     private fun parseAlignments(tokens: List<String>): List<TableAlignment> = tokens.map {
         when {
